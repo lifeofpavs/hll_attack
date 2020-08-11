@@ -1,0 +1,2 @@
+class AttackVector < ApplicationRecord
+end
