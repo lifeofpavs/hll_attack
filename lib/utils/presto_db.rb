@@ -25,5 +25,18 @@ module Utils
       puts rows
       rows[0][0]
     end
+
+    def get_cardinality_attack_vector
+      # run a query and get results as an array of arrays:
+      #ActiveRecord::Base.connection.execute("Truncate table summary_test")
+      #Building cardinality
+      
+      @client.run("insert into summary_conversions select cast(approx_set(number) as varbinary) as conversion_hll_sketch from attack_vectors ")
+      #Get cardinality
+      columns, rows = @client.run("select cardinality(merge(cast(hll as HyperLogLog))) as daily_conversions from summary_conversions")
+      #Return cardinality
+      puts rows
+      rows[0][0]
+    end
   end
 end
