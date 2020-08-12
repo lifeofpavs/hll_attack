@@ -4,7 +4,7 @@ module Api
   
       
     def initialize
-      @expectedCardinality = 20
+      @expectedCardinality = 100000
       @currentCardinality = 0
       @oldCardinality 
       @attack_vector = []
