@@ -1,11 +1,9 @@
 module Api
   class AttackController < ApplicationController
-    
-  
       
-    def initialize
-      @expectedCardinality = 100000
-      @currentCardinality = 0
+    def initialize(attack_length = 100000, currentCardinality = 0)
+      @expectedCardinality = attack_length.to_i
+      @currentCardinality = currentCardinality.to_i
       @oldCardinality 
       @attack_vector = []
     end
@@ -22,8 +20,8 @@ module Api
       #Populate and check cardinality
 
       #reset
-      conversion_id = 0
-      while conversion_id < @expectedCardinality do 
+      conversion_id = @currentCardinality
+      while @currentCardinality < @expectedCardinality do 
         oldCardinality = @currentCardinality
         Conversion.create(conversion_id: conversion_id, conversion_date: "2020-03-19", user_id: 1)
         @currentCardinality = Utils::PrestoDb.new.get_cardinality

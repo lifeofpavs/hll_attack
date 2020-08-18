@@ -14,6 +14,7 @@ default: &default
   encoding: utf8
   username: root
   password: root
+  pool: 20
 
 development:
   <<: *default
