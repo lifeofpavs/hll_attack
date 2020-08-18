@@ -1,7 +1,8 @@
 module Api
   class AttackController < ApplicationController
       
-    def initialize(attack_length = 100000, currentCardinality = 0)
+    def initialize(attack_length, currentCardinality)
+      puts currentCardinality
       @expectedCardinality = attack_length.to_i
       @currentCardinality = currentCardinality.to_i
       @oldCardinality 
@@ -45,7 +46,7 @@ module Api
       Utils::Slack::HllBot.send_message("Cardinality for #{@expectedCardinality} elements is #{Utils::PrestoDb.new.get_cardinality}", "simulations")
       Utils::Slack::HllBot.send_message("Cardinality for Attack Vector with #{AttackVector.all.count} elements is #{Utils::PrestoDb.new.get_cardinality_attack_vector}", "simulations")
       error = (Utils::PrestoDb.new.get_cardinality - Utils::PrestoDb.new.get_cardinality_attack_vector).to_i
-      Utils::Slack::HllBot.send_message("Error is #{error} of #{(error * 100)/@expectedCardinality}%", "simulations")
+      Utils::Slack::HllBot.send_message("Error is #{error} of #{(error * 100)/@expectedCardinality.to_i}%", "simulations")
       
       
     end
