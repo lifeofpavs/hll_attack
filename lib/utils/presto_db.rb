@@ -22,7 +22,7 @@ module Utils
       #Get cardinality
       columns, rows = @client.run("select cardinality(merge(cast(hll as HyperLogLog))) as daily_conversions from summary_test")
       #Return cardinality
-      puts rows
+      puts "Cardinality: #{rows}"
       rows[0][0]
     end
 
@@ -35,7 +35,7 @@ module Utils
       #Get cardinality
       columns, rows = @client.run("select cardinality(merge(cast(hll as HyperLogLog))) as daily_conversions from summary_conversions")
       #Return cardinality
-      puts rows
+      puts "Cardinality: #{rows}"
       rows[0][0]
     end
   end

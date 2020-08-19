@@ -24,6 +24,7 @@ module Api
       conversion_id = @currentCardinality
       while @currentCardinality < @expectedCardinality do 
         oldCardinality = @currentCardinality
+        puts "ID: #{conversion_id}"
         Conversion.create(conversion_id: conversion_id, conversion_date: "2020-03-19", user_id: 1)
         @currentCardinality = Utils::PrestoDb.new.get_cardinality
         if @currentCardinality > oldCardinality  
