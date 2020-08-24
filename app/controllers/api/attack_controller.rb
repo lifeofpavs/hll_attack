@@ -28,16 +28,12 @@ module Api
         Conversion.create(conversion_id: conversion_id, conversion_date: "2020-03-19", user_id: 1)
         @currentCardinality = Utils::PrestoDb.new.get_cardinality
         if @currentCardinality > oldCardinality  
-          @attack_vector << conversion_id
+          AttackVector.create(number: conversion_id)
         end
         conversion_id += 1
       end
       
       puts "Attack Vector is #{@attack_vector}"
-
-      @attack_vector.each do |attack_number|
-        AttackVector.create(number: attack_number)
-      end
 
       finish = Time.now
       diff = finish - start
