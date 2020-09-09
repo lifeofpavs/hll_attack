@@ -1,0 +1,3 @@
+class ConversionFiltered < ApplicationRecord
+
+end

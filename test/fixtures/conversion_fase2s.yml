@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user_id: one
+  conversion_id: 1
+  conversion_date: 2020-09-02
+
+two:
+  user_id: two
+  conversion_id: 1
+  conversion_date: 2020-09-02

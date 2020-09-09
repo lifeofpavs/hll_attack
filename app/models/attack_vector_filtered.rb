@@ -1,0 +1,2 @@
+class AttackVectorFiltered < ApplicationRecord
+end

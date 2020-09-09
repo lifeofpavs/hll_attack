@@ -10,7 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_10_215723) do
+ActiveRecord::Schema.define(version: 2020_09_02_162356) do
+
+  create_table "attack_vector_fase2s", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "attack_vector_filtereds", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "attack_vectors", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "number"
@@ -18,7 +30,23 @@ ActiveRecord::Schema.define(version: 2020_08_10_215723) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "conversion_fase2s", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "conversion_id"
+    t.date "conversion_date"
+    t.integer "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "conversions", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "conversion_id"
+    t.date "conversion_date"
+    t.integer "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "conversions_filtereds", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.integer "conversion_id"
     t.date "conversion_date"
     t.integer "user_id"
@@ -34,7 +62,7 @@ ActiveRecord::Schema.define(version: 2020_08_10_215723) do
   end
 
   create_table "summary_conversions", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.binary "hll", limit: 2053
+    t.binary "hll", limit: 8197
   end
 
   create_table "summary_test", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -58,6 +86,11 @@ ActiveRecord::Schema.define(version: 2020_08_10_215723) do
   end
 
   create_table "tmp_presto_88ea0ced279341a9b30ca347ffbb69e8", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.binary "hll", limit: 16777215
+    t.date "date"
+  end
+
+  create_table "tmp_presto_b40dcf333ef7463983bdf3e352f2b497", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.binary "hll", limit: 16777215
     t.date "date"
   end
