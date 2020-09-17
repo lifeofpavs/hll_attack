@@ -23,13 +23,13 @@ module Api
       #Populate and check cardinality
 
       #Keep populating until desired cardinality is achieved
-      for i in 0...@expectedCardinality do 
+      for i in 89773...@expectedCardinality do 
         oldCardinality = @currentCardinality #Get cardinality before insertion
 
         puts "ID: #{i}"
-        Conversion.create(conversion_id: i, conversion_date: "2020-03-19", user_id: 1) #Insert new element
-
-        @currentCardinality = Utils::PrestoDb.new.get_cardinality #Get new cardinality
+        data = Conversion.create(conversion_id: i, conversion_date: "2020-03-19", user_id: 1) #Insert new element
+        puts "DAta id is : #{data.id}"
+        @currentCardinality = Utils::PrestoDb.new.get_cardinality(data.id) #Get new cardinality
 
         if @currentCardinality > oldCardinality  #If new cardinality is gretater than old cardinality, insert in attack vector
           AttackVector.create(number: i)
@@ -53,14 +53,18 @@ module Api
     def fase2 #Fase2
       #Crear una nueva coleccion de AttackVecgor --> AttackVectorFase2 
       #Get elements not in db 
+      start = Time.now
       actual_attack_vector = AttackVector.all.pluck(:number).uniq #Get uniq elements in attack vector
-      conversions = [*36630..@expectedCardinality] #Populate array with elements from 1 to 100k
+      conversions = [*55578..@expectedCardinality] #Populate array with elements from 1 to 100k
 
       #New HLL | Resetear el summary_test
       ActiveRecord::Base.connection.execute("Truncate table summary_test ")
       #Meter elementos en vector de ataque primero
       AttackVector.all.each do |vector_item|
         ConversionFase2.create(conversion_id: vector_item.number, conversion_date: "2020-03-19", user_id: 1)
+      end
+
+      AttackVectorFase2.all.each do |item|
       end
       Utils::PrestoDb.new.insert_all_element_presto_fase2
       puts "Done injecting fase2 attack vector"
@@ -75,8 +79,8 @@ module Api
       conversions_2.each do |conversion_id| #Same as populate_conversions
 
         puts "ID: #{conversion_id}"
-        ConversionFase2.create(conversion_id: conversion_id, conversion_date: "2020-03-19", user_id: 1)
-        Utils::PrestoDb.new.insert_element_presto_fase2
+        data = ConversionFase2.create(conversion_id: conversion_id, conversion_date: "2020-03-19", user_id: 1)
+        Utils::PrestoDb.new.insert_element_presto_fase2(data.id)
         @currentCardinality = Utils::PrestoDb.new.get_cardinality_fase2
 
         if @currentCardinality > oldCardinality  
@@ -85,6 +89,9 @@ module Api
         oldCardinality = @currentCardinality
       end
 
+      finish = Time.now
+      diff = finish - start
+      Execution.create(time: diff.to_s, vector_size: AttackVectorFase2.all.count)
     end
 
     def fase3(filtered = false) #Fase 3  Insertar de mayor a menor 
@@ -94,8 +101,8 @@ module Api
       #New HLL | Truncar el antiguo
       ActiveRecord::Base.connection.execute("Truncate table summary_test ")
 
-      conversion_ids = filtered ? AttackVectorFiltered.all.order("number desc") : AttackVector.all.order("number desc") #If one filtering round has been done, get AttackVectorFiltered, where tthe filtered elements are
-      currentCardinality = Utils::PrestoDb.new.get_cardinality_filtered || 0 #Get current cardinality of filtered elements. 0 if null
+      conversion_ids = AttackVectorFase2.order(number: :desc) #If one filtering round has been done, get AttackVectorFiltered, where tthe filtered elements are
+      currentCardinality = 0 #Get current cardinality of filtered elements. 0 if null
       oldCardinality = 0
 
       #Meter los elementos en order inverso
@@ -105,14 +112,14 @@ module Api
         oldCardinality = currentCardinality
 
         puts "ID: #{conversion_id.number}"
-        ConversionFiltered.create(conversion_id: conversion_id.number, conversion_date: "2020-06-13", user_id: 1) #Insert new element 
+        data = ConversionFiltered.create(conversion_id: conversion_id.number, conversion_date: "2020-06-13", user_id: 1) #Insert new element 
 
-        currentCardinality = Utils::PrestoDb.new.get_cardinality_filtered #Get cardinality of filtered set 
+        currentCardinality = Utils::PrestoDb.new.get_cardinality_filtered(data.id) #Get cardinality of filtered set 
 
         if currentCardinality > oldCardinality  #If increases, insert in attack vector
           AttackVectorFiltered.where(number: conversion_id.number).first_or_create
-        else #Else, delete it 
-          AttackVectorFiltered.find_by(number: conversion_id.number).delete if filtered
+        # else #Else, delete it 
+        #   AttackVectorFiltered.find_by(number: conversion_id.number).delete if filtered
         end
       end
 
@@ -124,8 +131,7 @@ module Api
     end
 
     def all
-      fase1
-      fase2
+      
       fase3
     end
 
