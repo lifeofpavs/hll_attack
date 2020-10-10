@@ -34,7 +34,7 @@ module Api
       #Populate and check cardinality
 
       #Keep populating until desired cardinality is achieved
-      for i in 0...@expectedCardinality do 
+      for i in 71054...@expectedCardinality do 
         oldCardinality = @currentCardinality #Get cardinality before insertion
 
         puts "ID: #{i}"
@@ -66,15 +66,15 @@ module Api
       Utils::Slack::HllBot.send_message("Starting simulation fase 2  at #{start} with *#{@expectedCardinality}* ", "simulations")
 
       actual_attack_vector = AttackVector.all.pluck(:number).uniq #Get uniq elements in attack vector
-      conversions = [*0..@expectedCardinality] #Populate array with elements from 1 to 100k
+      conversions = [*30090...@expectedCardinality] #Populate array with elements from 1 to 100k
 
       #New HLL | Resetear el summary_test
       ActiveRecord::Base.connection.execute("Truncate table summary_test ")
       #Meter elementos en vector de ataque primero
-      AttackVector.all.each do |vector_item|
-        ConversionFase2.create(conversion_id: vector_item.number, conversion_date: "2020-03-19", user_id: 1)
-        AttackVectorFase2.create(number: vector_item.number)
-      end
+      # AttackVector.all.each do |vector_item|
+      #   ConversionFase2.create(conversion_id: vector_item.number, conversion_date: "2020-03-19", user_id: 1)
+      #   AttackVectorFase2.create(number: vector_item.number)
+      # end
 
       Utils::PrestoDb.new.insert_all_element_presto_fase2
       puts "Done injecting fase2 attack vector"
@@ -151,10 +151,10 @@ module Api
     end
 
     def all
-      reset
-      fase1
+      # reset
+      # fase1
       fase2
-      fase3
+      # fase3
     end
 
   end
