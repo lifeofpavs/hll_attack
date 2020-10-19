@@ -88,7 +88,7 @@ The method _all_ will reset the database and execute all the different phases of
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Pull requests are welcome as many sections of the code are boilerplate. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 
