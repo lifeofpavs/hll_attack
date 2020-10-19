@@ -85,3 +85,11 @@ Api::AttackController.new(expectedCardinality, currentCardinality).all
 
 currentCardinality is set to 0 by default but you can change it in order to modify the script.
 The method _all_ will reset the database and execute all the different phases of the attack, sending a slack message after each phase regarding the API key in .env
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
