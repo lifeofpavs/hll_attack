@@ -1,24 +1,87 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This repo is created using ruby 2.5.1 in order to support the Master Thesis presented by Pablo Adell to the UC3M on the topic: Inflating Hyperloglog Cardinality Estimates: Algorithms and Applications.
 
-Things you may want to cover:
+## Installation
 
-* Ruby version
+First of all, install all the necessary dependencies by executing:
 
-* System dependencies
+```bash
+bundle install
+```
 
-* Configuration
+Then setup and create the database by executing
 
-* Database creation
+```bash
+rake db:create
+```
 
-* Database initialization
+And create all the tables with:
 
-* How to run the test suite
+```bash
+rake db:migrate
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+Also two additional tables "summary_test" and "summary_conversions" should be created using mysql command line
 
-* Deployment instructions
+```bash
+CREATE TABLE summary_test (date date, hll VARBINARY(10240))
 
-* ...
+CREATE TABLE summary_conversions (hll VARBINARY(8197))
+```
+
+Then go to [PrestoDB webpage](https://prestodb.io/docs/current/installation.html) and follow the installation tutorial.
+
+Create a catalog for your mysql as
+
+```bash
+connector.name=mysql
+connection-url=jdbc:mysql://localhost:your_mysql_port?useSSl=false
+connection-user=root
+connection-password=root
+```
+
+Finally create a .env file with:
+
+```bash
+SLACK_TOKEN=xoxb-xxxxxxxxx
+```
+
+This will allow you to receive all the updates as the phases execute when the attack is running
+
+## Usage
+
+Start the presto server by navigating to presto*version*/bin and executing
+
+```bash
+./launcher start
+```
+
+Once the server is started, update the values in /lib/utils/presto.db with those you chose when configuring presto
+
+```bash
+ @client = Presto::Client.new(
+        server: "localhost:8080",   #Require option where your presto server is  running
+        ss: {verify: false},
+        catalog: "mysql",           #The catalog you want to use with presto
+        schema: "test",             #Default schema to be used in the database
+        user: "root",
+        time_zone: "US/Pacific",
+        language: "English"
+      )
+```
+
+In order to run the attack start the rails console
+
+```bash
+rails c
+```
+
+And execute the controller method:
+
+```bash
+Api::AttackController.new(expectedCardinality, currentCardianlity).all
+```
+
+currentCardinality is set to 0 by default but you can change it in order to modify the script.
+The method _all_ will reset the database and execute all the different phases of the attack, sending a slack message after each phase regarding the API key in .env

@@ -1,15 +1,21 @@
 module Api
   class AttackController < ApplicationController
       
-    def initialize(attack_length, currentCardinality)
-      @expectedCardinality = attack_length.to_i
+    #This controller will hold the main functionality of the attack. 
+    #It is divided in 3 phases
+      #Phase 1: Will insert the initial elements and create the initial attack vector
+      #Phase 2: Due to the deterministic nature of HLL, some elements will be missed, so this phase aims to insert all missed elements into the attack vector
+      #Phase 3: This final phase will filter the attack vector, only leaving in it those that realy increase the cardinality
+
+    def initialize(expectedCardinality, currentCardinality)
+      @expectedCardinality = expectedCardinality.to_i
       @currentCardinality = currentCardinality.to_i
       @oldCardinality = 0 
       @attack_vector = []
     end
   
     def reset
-      #Reset conversions table 
+      #Reset the database to perform a new experiment
       Conversion.delete_all
       ConversionFase2.delete_all
       ConversionFiltered.delete_all
@@ -26,15 +32,13 @@ module Api
       ActiveRecord::Base.connection.execute("Truncate table summary_conversions ")
     end
   
-    def fase1 #Fase 1 
-      #Cardinalidad no tiene que ser 100k, si no que tenemos que meter 100k elementos y la cardinalidad, la que sea 
+    def fase1 #Phase 1 - Insert elements until expectedCardinality elements and compute attack vector of phase 1 with those that increase the cardinality
       start = Time.now
       Utils::Slack::HllBot.send_message("Starting simulation at #{start} with *#{@expectedCardinality}* ", "simulations")
 
       #Populate and check cardinality
-
-      #Keep populating until desired cardinality is achieved
-      for i in 71054...@expectedCardinality do 
+      #Insert elements up to expectedCardinality
+      for i in 0...@expectedCardinality do 
         oldCardinality = @currentCardinality #Get cardinality before insertion
 
         puts "ID: #{i}"
@@ -59,34 +63,32 @@ module Api
       
     end
 
-    def fase2 #Fase2
-      #Crear una nueva coleccion de AttackVecgor --> AttackVectorFase2 
-      #Get elements not in db 
+    def fase2 #Phase 2 - Insert all missed elements in new attack vector. Creating a new attack vector in order to have better tracking between phases
+     
       start = Time.now
       Utils::Slack::HllBot.send_message("Starting simulation fase 2  at #{start} with *#{@expectedCardinality}* ", "simulations")
 
       actual_attack_vector = AttackVector.all.pluck(:number).uniq #Get uniq elements in attack vector
-      conversions = [*30090...@expectedCardinality] #Populate array with elements from 1 to 100k
+      conversions = [*0...@expectedCardinality] #Populate array with elements from 1 to expectedCardinality
 
-      #New HLL | Resetear el summary_test
+      #In order to get a new HLL, the old one should be emptied
       ActiveRecord::Base.connection.execute("Truncate table summary_test ")
-      #Meter elementos en vector de ataque primero
-      # AttackVector.all.each do |vector_item|
-      #   ConversionFase2.create(conversion_id: vector_item.number, conversion_date: "2020-03-19", user_id: 1)
-      #   AttackVectorFase2.create(number: vector_item.number)
-      # end
 
-      Utils::PrestoDb.new.insert_all_element_presto_fase2
-      puts "Done injecting fase2 attack vector"
-      #Sacar cardinalidad 
+      #Insert elements in the attack vector to be used in this phase
+      AttackVector.all.each do |vector_item|
+        ConversionFase2.create(conversion_id: vector_item.number, conversion_date: "2020-03-19", user_id: 1)
+        AttackVectorFase2.create(number: vector_item.number)
+      end
+
+      Utils::PrestoDb.new.insert_all_element_presto_fase2 #Insert all elements in the HLL
+
+      #Obtain actual cardinality after inserting initial elements 
       oldCardinality = Utils::PrestoDb.new.get_cardinality_fase2
-      #Injectar uno a uno los que no estaban en el vector de ataque y ver los que aumentan la cardinalidad 
-      #Si aumenta, meter en el vector de ataque 
 
-      #Get final array of elements
+      #Get final array of elements not included
       conversions_2 = conversions.select { |e| !(actual_attack_vector.include? (e))} #Perform except in order to get elements not in attack vector 
       puts "Done getting elements not in array. Length #{conversions_2.size}"
-      conversions_2.each do |conversion_id| #Same as populate_conversions
+      conversions_2.each do |conversion_id| #Insert the elements, if the cardinality increases, it is a missed element and should be added to the attack vector
         oldCardinality = @currentCardinality
         puts "ID: #{conversion_id}"
         data = ConversionFase2.create(conversion_id: conversion_id, conversion_date: "2020-03-19", user_id: 1)
@@ -110,21 +112,19 @@ module Api
       
     end
 
-    def fase3(filtered = false) #Fase 3  Insertar de mayor a menor 
+    def fase3(filtered = false) #Fase 3  Insert elements in descending order 
       start = Time.now
-
       Utils::Slack::HllBot.send_message("Starting simulation at #{start} with *#{@expectedCardinality}* ", "simulations")
 
-      #New HLL | Truncar el antiguo
+      #In order to obtain a new HLL, we have to empty the previous one 
       ActiveRecord::Base.connection.execute("Truncate table summary_test")
 
-      conversion_ids = AttackVectorFase2.order(number: :desc) #If one filtering round has been done, get AttackVectorFiltered, where tthe filtered elements are
-      @currentCardinality = 0 #Get current cardinality of filtered elements. 0 if null
+      conversion_ids = AttackVectorFase2.order(number: :desc)
+      @currentCardinality = 0 #As the HLL is new, the current cardinality of it, would be 0
       oldCardinality = 0
 
-      #Meter los elementos en order inverso
-      #Si aumenta cardinalidad, guardar en vector de ataque final
-
+      #The elements will be inserted in descending order
+      #If the cardinality increases, the element will be added to the attack vector
       conversion_ids.each do |conversion_id|
         oldCardinality = @currentCardinality
 
@@ -135,8 +135,6 @@ module Api
 
         if@currentCardinality > oldCardinality  #If increases, insert in attack vector
           AttackVectorFiltered.create(number: conversion_id.number)
-        # else #Else, delete it 
-        #   AttackVectorFiltered.find_by(number: conversion_id.number).delete if filtered
         end
       end
 
@@ -150,11 +148,12 @@ module Api
       
     end
 
+    #Execute all the phases of the attack after resetting the database
     def all
-      # reset
-      # fase1
+      reset
+      fase1
       fase2
-      # fase3
+      fase3
     end
 
   end
