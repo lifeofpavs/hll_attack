@@ -1,6 +1,6 @@
 # README
 
-This repo is created using ruby 2.5.1 in order to support the Master Thesis presented by Pablo Adell to the UC3M on the topic: Inflating Hyperloglog Cardinality Estimates: Algorithms and Applications.
+This repo is created using ruby 2.5.1 in order to support the Master Thesis presented by Pablo Adell to the UC3M on the topic: _Inflating Hyperloglog Cardinality Estimates: Algorithms and Applications._
 
 ## Installation
 
@@ -51,7 +51,7 @@ This will allow you to receive all the updates as the phases execute when the at
 
 ## Usage
 
-Start the presto server by navigating to presto*version*/bin and executing
+Start the presto server by navigating to presto\__version_/bin and executing
 
 ```bash
 ./launcher start
@@ -80,7 +80,7 @@ rails c
 And execute the controller method:
 
 ```bash
-Api::AttackController.new(expectedCardinality, currentCardianlity).all
+Api::AttackController.new(expectedCardinality, currentCardinality).all
 ```
 
 currentCardinality is set to 0 by default but you can change it in order to modify the script.
