@@ -86,6 +86,14 @@ Api::AttackController.new(expectedCardinality, currentCardinality).all
 currentCardinality is set to 0 by default but you can change it in order to modify the script.
 The method _all_ will reset the database and execute all the different phases of the attack, sending a slack message after each phase regarding the API key in .env
 
+## Redis Test
+
+Additionally, the same attack can be performed in Redis by executing it as follows 
+
+```bash
+python redis_test.py
+```
+
 ## Contributing
 
 Pull requests are welcome as many sections of the code are boilerplate. For major changes, please open an issue first to discuss what you would like to change.
